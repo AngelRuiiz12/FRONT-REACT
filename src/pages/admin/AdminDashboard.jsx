@@ -5,56 +5,26 @@ import api from "../../api/axios"; // Asegúrate de que esta ruta sea correcta
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [busqueda, setBusqueda] = useState("");
-
-  // Nuevo estado para los alumnos que vendrán de la base de datos
-  // De momento, inicializamos con un array vacío
-  const [alumnos, setAlumnos] = useState([]);
+  const [alumnos, setAlumnos] = useState({ data: [] }); // Inicializamos con estructura de objeto
+  const [cargando, setCargando] = useState(true); // <--- NUEVO: Estado de carga
 
   useEffect(() => {
     const cargarAlumnos = async () => {
       try {
         const respuesta = await api.get("/alumnos");
-        // Importante: Laravel Paginate envuelve todo en un objeto.
-        // Si usas Resource Collection, los datos suelen venir en respuesta.data.data
-        console.log("Estructura recibida:", respuesta.data);
-
         setAlumnos(respuesta.data);
       } catch (err) {
         console.error("Error cargando alumnos:", err);
+      } finally {
+        // Pase lo que pase (éxito o error), dejamos de cargar
+        setCargando(false);
       }
     };
     cargarAlumnos();
   }, []);
 
-  // Mientras no tengamos datos de la DB, usaremos los de ejemplo
-  // para que no se te quede la pantalla vacía:
-  const alumnosEjemplo = [
-    {
-      id: 1,
-      nombre: "Ana García",
-      curso: "Teatro Iniciación",
-      estado: "Pagado",
-      deuda: 0,
-    },
-    {
-      id: 2,
-      nombre: "Juan Pérez",
-      curso: "Musicales",
-      estado: "Pendiente",
-      deuda: 50,
-    },
-    {
-      id: 3,
-      nombre: "Laura Sanz",
-      curso: "Improvisación",
-      estado: "Atrasado",
-      deuda: 100,
-    },
-  ];
-
-  // 1. Identificamos de dónde vienen los datos
-  // Como usas paginate(), los alumnos reales estarán en alumnos.data
-  const listaAlumnos = alumnos.data ? alumnos.data : alumnosEjemplo;
+  // Ahora la lista siempre viene de los datos reales
+  const listaAlumnos = alumnos.data || [];
 
   // 2. Aplicamos el filtro sobre esa lista (ESTO ES LO QUE ME PREGUNTABAS)
   const alumnosFiltrados = listaAlumnos.filter((alumno) => {
@@ -99,45 +69,54 @@ const AdminDashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {alumnosFiltrados.map((alumno) => (
-            // Importante: Usamos alumno.id_alumno como key
-            <tr
-              key={alumno.id_alumno}
-              style={{ borderBottom: "1px solid #555" }}
-            >
-              {/* Concatenamos Nombre y Apellidos */}
-              <td style={styles.td}>
-                {alumno.nombre} {alumno.apellidos}
-              </td>
-
-              {/* Si aún no tienes la relación de cursos en la DB, 
-          ponemos un valor por defecto o el campo email/telefono */}
-              <td style={styles.td}>{alumno.email}</td>
-
-              <td
-                style={{
-                  ...styles.td,
-                  // Ajustamos la lógica de color (puedes cambiarla según tus necesidades)
-                  color: alumno.estado === "Pagado" ? "#4CAF50" : "#FF5252",
-                }}
-              >
-                {alumno.estado || "Pendiente"}
-              </td>
-
-              {/* Si no tienes columna 'deuda' en esta tabla, ponemos 0 o el campo que prefieras */}
-              <td style={styles.td}>{alumno.deuda ?? 0}€</td>
-
-              <td style={styles.td}>
-                <button
-                  // Usamos id_alumno para la navegación
-                  onClick={() => navigate(`/admin/alumno/${alumno.id_alumno}`)}
-                  style={{ cursor: "pointer", padding: "5px 10px" }}
-                >
-                  👁️ Ver Detalle
-                </button>
+          {cargando ? (
+            // Mientras carga, mostramos una fila informativa o vacía
+            <tr>
+              <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
+                Obteniendo alumnos de Supabase...
               </td>
             </tr>
-          ))}
+          ) : (
+            // Cuando termina de cargar, mapeamos los reales
+            alumnosFiltrados.map((alumno) => (
+              <tr
+                key={alumno.id_alumno}
+                style={{ borderBottom: "1px solid #555" }}
+              >
+                <td style={styles.td}>
+                  {alumno.nombre} {alumno.apellidos}
+                </td>
+                <td style={styles.td}>{alumno.email}</td>
+                <td
+                  style={{
+                    ...styles.td,
+                    color: alumno.estado === "Pagado" ? "#4CAF50" : "#FF5252",
+                  }}
+                >
+                  {alumno.estado || "Pendiente"}
+                </td>
+                <td style={styles.td}>{alumno.deuda ?? 0}€</td>
+                <td style={styles.td}>
+                  <button
+                    onClick={() =>
+                      navigate(`/admin/alumno/${alumno.id_alumno}`)
+                    }
+                  >
+                    👁️ Ver Detalle
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+
+          {/* Si terminó de cargar pero no hay resultados tras filtrar */}
+          {!cargando && alumnosFiltrados.length === 0 && (
+            <tr>
+              <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
+                No se encontraron alumnos.
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

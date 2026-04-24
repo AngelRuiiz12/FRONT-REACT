@@ -1,66 +1,70 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../../api/axios'; // Ajusta la ruta si es necesario
 
 const AlumnoDetalle = () => {
-  const { id } = useParams(); // Extrae el ID de la URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
+  const [alumno, setAlumno] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-  // Simulamos que buscamos los datos de este ID específico
-  // (En el futuro, aquí haremos un fetch a Laravel)
-  const alumno = {
-    id: id,
-    nombre: "Ana García",
-    email: "ana@ejemplo.com",
-    telefono: "600 000 000",
-    curso: "Teatro Iniciación",
-    mensualidad: "50€",
-    historialPagos: [
-      { mes: "Enero", estado: "Pagado" },
-      { mes: "Febrero", estado: "Pagado" },
-      { mes: "Marzo", estado: "Pendiente" },
-    ]
-  };
+  useEffect(() => {
+    const obtenerDetalle = async () => {
+      try {
+        // Llamada a la ruta Route::get('/alumnos/{id}', ...) de tu api.php
+        const respuesta = await api.get(`/alumnos/${id}`);
+        setAlumno(respuesta.data);
+      } catch (error) {
+        console.error("Error al obtener el detalle del alumno:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+    obtenerDetalle();
+  }, [id]);
+
+  if (cargando) return <div style={{color: 'white', padding: '20px'}}>Cargando datos desde Supabase...</div>;
+  if (!alumno) return <div style={{color: 'white', padding: '20px'}}>Alumno no encontrado.</div>;
 
   return (
-    <div style={{ padding: '30px', color: 'white' }}>
-      <button onClick={() => navigate(-1)}>⬅️ Volver</button>
+    <div style={{ padding: '30px', color: 'white', fontFamily: 'Arial' }}>
+      <button 
+        onClick={() => navigate(-1)} 
+        style={{ marginBottom: '20px', padding: '10px', cursor: 'pointer' }}
+      >
+        ← Volver al listado
+      </button>
       
-      <h1 style={{ borderBottom: '2px solid #4CAF50', paddingBottom: '10px' }}>
-        Ficha del Alumno #{id}
-      </h1>
-
-      <div style={styles.grid}>
-        <div style={styles.card}>
-          <h3>Datos Personales</h3>
-          <p><strong>Nombre:</strong> {alumno.nombre}</p>
-          <p><strong>Email:</strong> {alumno.email}</p>
-          <p><strong>Teléfono:</strong> {alumno.telefono}</p>
+      <div style={{ backgroundColor: '#333', padding: '20px', borderRadius: '10px' }}>
+        <h1 style={{ borderBottom: '1px solid #555', paddingBottom: '10px' }}>
+          Ficha de {alumno.nombre} {alumno.apellidos}
+        </h1>
+        
+        <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div>
+            <h3>Datos Personales</h3>
+            <p><strong>ID Alumno:</strong> {alumno.id_alumno}</p>
+            <p><strong>Email:</strong> {alumno.email}</p>
+            <p><strong>Teléfono:</strong> {alumno.telefono || 'No registrado'}</p>
+          </div>
+          
+          <div style={{ borderLeft: '1px solid #555', paddingLeft: '20px' }}>
+            <h3>Estado Financiero</h3>
+            <p><strong>Estado:</strong> 
+              <span style={{ 
+                marginLeft: '10px',
+                color: alumno.estado === 'Pagado' ? '#4CAF50' : '#FF5252',
+                fontWeight: 'bold'
+              }}>
+                {alumno.estado || 'Pendiente'}
+              </span>
+            </p>
+            <p><strong>Deuda Total:</strong> {alumno.deuda ?? 0} €</p>
+          </div>
         </div>
-
-        <div style={styles.card}>
-          <h3>Información Académica</h3>
-          <p><strong>Curso:</strong> {alumno.curso}</p>
-          <p><strong>Cuota:</strong> {alumno.mensualidad}</p>
-        </div>
-      </div>
-
-      <div style={{ marginTop: '20px' }}>
-        <h3>Historial de Pagos</h3>
-        <ul>
-          {alumno.historialPagos.map((pago, index) => (
-            <li key={index}>
-              {pago.mes}: <span style={{ color: pago.estado === 'Pagado' ? '#4CAF50' : '#FF5252' }}>{pago.estado}</span>
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );
-};
-
-const styles = {
-  grid: { display: 'flex', gap: '20px', marginTop: '20px' },
-  card: { background: '#333', padding: '20px', borderRadius: '10px', flex: 1 }
 };
 
 export default AlumnoDetalle;
