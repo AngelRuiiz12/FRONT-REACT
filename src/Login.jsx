@@ -10,11 +10,17 @@ function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    if (email === "admin@ejemplo.com" && password === "1234") {
-      // En lugar de un alert, navegamos al Dashboard
-      navigate("/dashboard");
+    // Simulando respuesta del servidor
+    const userSimulado = {
+      email: email,
+      rol: email === "admin@teatro.com" ? "admin" : "alumno",
+    };
+
+    // Dirigimos al usuario al perfil de alumno o de admin
+    if (userSimulado.rol === "admin") {
+      navigate("/admin/dashboard");
     } else {
-      alert("Credenciales incorrectas");
+      navigate("/alumno/perfil");
     }
   };
 
