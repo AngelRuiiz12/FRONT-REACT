@@ -1,13 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Login from './Login'
+import Dashboard from './Dashboard'
 
-// Un componente rápido para la página de bienvenida
-const Dashboard = () => (
-  <div style={{ textAlign: 'center', marginTop: '50px' }}>
-    <h1>🏠 ¡Bienvenido al Dashboard!</h1>
-    <p>Solo puedes ver esto si te has logueado.</p>
-  </div>
-)
 
 function App() {
   return (
