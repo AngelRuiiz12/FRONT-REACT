@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AlumnoDetalle from './pages/admin/AlumnoDetalle';
-// import AlumnoProfile from './pages/alumno/AlumnoProfile';
+import AlumnoProfile from './pages/alumno/AlumnoProfile';
 
 function App() {
   return (
@@ -15,8 +15,8 @@ function App() {
       {/* <Route path="/admin/alumnos" element={<div>Lista de Alumnos</div>} /> */}
       
       {/* Rutas de Alumno */}
-      {/* <Route path="/alumno/perfil" element={<AlumnoProfile />} />
-      <Route path="/alumno/pagos" element={<div>Mis Pagos</div>} /> */}
+      <Route path="/alumno/perfil" element={<AlumnoProfile />} />
+      {/* <Route path="/alumno/pagos" element={<div>Mis Pagos</div>} /> */}
     </Routes>
   )
 }
